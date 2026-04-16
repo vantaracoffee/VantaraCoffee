@@ -29,40 +29,22 @@ body{
   padding:14px;
 }
 
-/* 🔥 CARD BARU (AMAN) */
 .item{
   background:#151516;
   border-radius:18px;
   overflow:hidden;
   cursor:pointer;
   transition:0.2s;
-  box-shadow:0 4px 12px rgba(0,0,0,0.4);
 }
-
-.item:active{
-  transform:scale(0.96);
-}
-
+.item:active{transform:scale(0.96);}
 .item img{
   width:100%;
   height:130px;
   object-fit:cover;
 }
-
-.item .info{
-  padding:12px;
-}
-
-.item .nama{
-  font-weight:600;
-  font-size:14px;
-}
-
-.item .harga{
-  font-size:13px;
-  color:#c8a96a;
-  margin-top:4px;
-}
+.item .info{padding:12px;}
+.item .nama{font-weight:600;}
+.item .harga{color:#c8a96a;font-size:13px;}
 
 /* CART */
 .cart{
@@ -75,6 +57,41 @@ body{
   padding:10px;
 }
 
+/* 🔥 TOTAL LUAR */
+.total-box{
+  background:linear-gradient(135deg,#1a1a1c,#111);
+  border-radius:14px;
+  padding:12px;
+  margin-top:6px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 0 15px rgba(200,169,106,0.25);
+}
+
+.total-label{
+  font-size:12px;
+  color:#aaa;
+  letter-spacing:1px;
+}
+
+.total-value{
+  font-size:24px;
+  font-weight:bold;
+  color:#c8a96a;
+}
+
+.total-animate{
+  animation:pop 0.2s ease;
+}
+
+@keyframes pop{
+  0%{transform:scale(1);}
+  50%{transform:scale(1.1);}
+  100%{transform:scale(1);}
+}
+
+/* LIST */
 .list{
   max-height:80px;
   overflow:auto;
@@ -97,11 +114,11 @@ body{
 
 /* BUTTON */
 .bayar-btn{
-  margin-top:5px;
-  padding:10px;
+  margin-top:8px;
+  padding:12px;
   background:#c8a96a;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
   font-weight:bold;
   width:100%;
 }
@@ -117,6 +134,33 @@ body{
   transition:0.3s;
 }
 .keypad-modal.active{bottom:0;}
+
+/* 🔥 TOTAL KEYPAD */
+.total-keypad-box{
+  background:#1a1a1c;
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:10px;
+  text-align:center;
+  box-shadow:0 0 12px rgba(200,169,106,0.3);
+  animation:popIn 0.3s ease;
+}
+
+.total-keypad-box .label{
+  font-size:12px;
+  color:#aaa;
+}
+
+.total-keypad-box .value{
+  font-size:26px;
+  font-weight:bold;
+  color:#c8a96a;
+}
+
+@keyframes popIn{
+  0%{transform:scale(0.9);opacity:0;}
+  100%{transform:scale(1);opacity:1;}
+}
 
 .keypad{
   display:grid;
@@ -183,13 +227,28 @@ body{
 
 <div id="cart" class="cart">
   <div id="list" class="list"></div>
+
   <div>Item: <span id="jumlah">0</span></div>
-  <div>Total: Rp <span id="total">0</span></div>
+
+  <!-- 🔥 TOTAL LUAR -->
+  <div class="total-box">
+    <div class="total-label">TOTAL BELANJA</div>
+    <div class="total-value" id="totalWrapper">
+      Rp <span id="total">0</span>
+    </div>
+  </div>
+
   <button class="bayar-btn" onclick="openKeypad()">Bayar</button>
 </div>
 
+<!-- KEYPAD -->
 <div id="keypadModal" class="keypad-modal">
-  <div>Total: Rp <span id="totalKeypad">0</span></div>
+
+  <div class="total-keypad-box">
+    <div class="label">TOTAL</div>
+    <div class="value">Rp <span id="totalKeypad">0</span></div>
+  </div>
+
   <div>Bayar: Rp <span id="bayar">0</span></div>
   <div>Kembali: Rp <span id="kembali">0</span></div>
 
@@ -274,17 +333,25 @@ async function loadMenu(){
 }
 loadMenu();
 
-/* === SEMUA LOGIC ASLI (TIDAK DIUBAH) === */
-function tambah(n,h){cart.push({nama:n,harga:h});total+=h;render();}
+/* TAMBAH */
+function tambah(n,h){
+  cart.push({nama:n,harga:h});
+  total+=h;
+  render();
+}
+
+/* RENDER */
 function render(){
   const list=document.getElementById("list");
   list.innerHTML="";
+
   let map={};
   cart.forEach(item=>{
     if(!map[item.nama]) map[item.nama]={qty:0,total:0};
     map[item.nama].qty++;
     map[item.nama].total+=item.harga;
   });
+
   Object.keys(map).forEach(nama=>{
     const item=map[nama];
     list.innerHTML+=`
@@ -293,16 +360,31 @@ function render(){
       <button class="hapus" onclick="hapusSatu('${nama}')">x</button>
     </div>`;
   });
+
   document.getElementById("jumlah").innerText=cart.length;
-  document.getElementById("total").innerText=formatRupiah(total);
+
+  const totalEl=document.getElementById("total");
+  const wrapper=document.getElementById("totalWrapper");
+
+  totalEl.innerText=formatRupiah(total);
+
+  wrapper.classList.remove("total-animate");
+  void wrapper.offsetWidth;
+  wrapper.classList.add("total-animate");
+
   adjustMenuPadding();
 }
 
 function hapusSatu(nama){
   let i=cart.findIndex(x=>x.nama===nama);
-  if(i>-1){total-=cart[i].harga;cart.splice(i,1);render();}
+  if(i>-1){
+    total-=cart[i].harga;
+    cart.splice(i,1);
+    render();
+  }
 }
 
+/* KEYPAD */
 function openKeypad(){
   document.getElementById("keypadModal").classList.add("active");
   document.getElementById("totalKeypad").innerText=formatRupiah(total);
@@ -320,8 +402,10 @@ function update(){
   document.getElementById("kembali").innerText=formatRupiah(Number(bayar||0)-total);
 }
 
+/* CHECKOUT */
 function checkout(){
   if(Number(bayar)<total) return alert("Uang kurang");
+
   document.getElementById("loading").style.display="flex";
 
   let map={};
@@ -336,7 +420,11 @@ function checkout(){
       method:"POST",
       mode:"no-cors",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({nama:n,qty:map[n].qty,total:map[n].total})
+      body:JSON.stringify({
+        nama:n,
+        qty:map[n].qty,
+        total:map[n].total
+      })
     });
   }
 
@@ -344,9 +432,11 @@ function checkout(){
     document.getElementById("loading").style.display="none";
     document.getElementById("notif").style.display="block";
     setTimeout(()=>document.getElementById("notif").style.display="none",2000);
+
     cart=[];total=0;bayar="";
     render();
     closeKeypad();
+
   },1000);
 }
 
