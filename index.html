@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vantara Coffee POS</title>
+
+<style>
+body{
+  font-family:'Segoe UI',sans-serif;
+  background:#0b0b0c;
+  color:#fff;
+  margin:0;
+}
+
+/* HEADER */
+.header{
+  padding:15px;
+  text-align:center;
+  background:#111;
+  font-weight:bold;
+}
+
+/* MENU */
+.menu{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  padding:14px;
+}
+
+/* 🔥 CARD BARU (AMAN) */
+.item{
+  background:#151516;
+  border-radius:18px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:0.2s;
+  box-shadow:0 4px 12px rgba(0,0,0,0.4);
+}
+
+.item:active{
+  transform:scale(0.96);
+}
+
+.item img{
+  width:100%;
+  height:130px;
+  object-fit:cover;
+}
+
+.item .info{
+  padding:12px;
+}
+
+.item .nama{
+  font-weight:600;
+  font-size:14px;
+}
+
+.item .harga{
+  font-size:13px;
+  color:#c8a96a;
+  margin-top:4px;
+}
+
+/* CART */
+.cart{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#111;
+  border-top:1px solid #222;
+  padding:10px;
+}
+
+.list{
+  max-height:80px;
+  overflow:auto;
+  font-size:13px;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.hapus{
+  background:red;
+  color:#fff;
+  border:none;
+  border-radius:5px;
+  padding:2px 6px;
+}
+
+/* BUTTON */
+.bayar-btn{
+  margin-top:5px;
+  padding:10px;
+  background:#c8a96a;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  width:100%;
+}
+
+/* KEYPAD */
+.keypad-modal{
+  position:fixed;
+  bottom:-100%;
+  left:0;
+  right:0;
+  background:#111;
+  padding:15px;
+  transition:0.3s;
+}
+.keypad-modal.active{bottom:0;}
+
+.keypad{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+.keypad button{
+  padding:15px;
+  font-size:18px;
+  background:#222;
+  color:#fff;
+  border:none;
+  border-radius:10px;
+}
+
+/* LOADING */
+.loading{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.7);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:999;
+}
+
+.spinner{
+  border:5px solid #333;
+  border-top:5px solid #c8a96a;
+  border-radius:50%;
+  width:50px;
+  height:50px;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  100%{transform:rotate(360deg);}
+}
+
+/* NOTIF */
+.notif{
+  position:fixed;
+  top:10px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#1f3d2b;
+  padding:10px;
+  border-radius:10px;
+  display:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">☕ Vantara Coffee</div>
+
+<div id="menu" class="menu">Loading...</div>
+
+<div id="cart" class="cart">
+  <div id="list" class="list"></div>
+  <div>Item: <span id="jumlah">0</span></div>
+  <div>Total: Rp <span id="total">0</span></div>
+  <button class="bayar-btn" onclick="openKeypad()">Bayar</button>
+</div>
+
+<div id="keypadModal" class="keypad-modal">
+  <div>Total: Rp <span id="totalKeypad">0</span></div>
+  <div>Bayar: Rp <span id="bayar">0</span></div>
+  <div>Kembali: Rp <span id="kembali">0</span></div>
+
+  <div class="keypad">
+    <button onclick="inputUang('1')">1</button>
+    <button onclick="inputUang('2')">2</button>
+    <button onclick="inputUang('3')">3</button>
+    <button onclick="clearUang()">C</button>
+
+    <button onclick="inputUang('4')">4</button>
+    <button onclick="inputUang('5')">5</button>
+    <button onclick="inputUang('6')">6</button>
+    <button onclick="hapusUang()">⌫</button>
+
+    <button onclick="inputUang('7')">7</button>
+    <button onclick="inputUang('8')">8</button>
+    <button onclick="inputUang('9')">9</button>
+    <button onclick="inputUang('00')">00</button>
+
+    <button onclick="inputUang('0')">0</button>
+    <button onclick="inputUang('000')">000</button>
+  </div>
+
+  <button class="bayar-btn" onclick="checkout()">Konfirmasi Bayar</button>
+  <button class="bayar-btn" onclick="closeKeypad()">← Kembali</button>
+</div>
+
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <p>Memproses transaksi...</p>
+</div>
+
+<div id="notif" class="notif">✅ Transaksi berhasil</div>
+
+<script>
+
+const API_URL="https://script.google.com/macros/s/AKfycbzTsSoFYe8c4XPHUL8vKVkh2sXtUAnD4RaIf__2r0Dxjp_eJFJqVd3RLTXjJ5GiR7g2/exec";
+
+let cart=[],total=0,bayar="";
+
+function formatRupiah(a){
+  return new Intl.NumberFormat("id-ID").format(a);
+}
+
+function adjustMenuPadding(){
+  const cartEl=document.getElementById("cart");
+  const menu=document.getElementById("menu");
+  menu.style.paddingBottom=(cartEl.offsetHeight+20)+"px";
+}
+window.addEventListener("load",adjustMenuPadding);
+window.addEventListener("resize",adjustMenuPadding);
+
+async function loadMenu(){
+  try{
+    const res=await fetch(API_URL);
+    const data=await res.json();
+
+    const menu=document.getElementById("menu");
+    menu.innerHTML="";
+
+    data.forEach(item=>{
+      let img=item.gambar||"https://via.placeholder.com/300";
+
+      if(img.includes("drive.google.com")){
+        const id=img.split("/d/")[1]?.split("/")[0];
+        if(id) img=`https://drive.google.com/uc?export=view&id=${id}`;
+      }
+
+      menu.innerHTML+=`
+      <div class="item" onclick="tambah('${item.nama}',${item.harga})">
+        <img src="${img}">
+        <div class="info">
+          <div class="nama">${item.nama}</div>
+          <div class="harga">Rp ${formatRupiah(item.harga)}</div>
+        </div>
+      </div>`;
+    });
+
+  }catch{
+    document.getElementById("menu").innerHTML="❌ Gagal load menu";
+  }
+}
+loadMenu();
+
+/* === SEMUA LOGIC ASLI (TIDAK DIUBAH) === */
+function tambah(n,h){cart.push({nama:n,harga:h});total+=h;render();}
+function render(){
+  const list=document.getElementById("list");
+  list.innerHTML="";
+  let map={};
+  cart.forEach(item=>{
+    if(!map[item.nama]) map[item.nama]={qty:0,total:0};
+    map[item.nama].qty++;
+    map[item.nama].total+=item.harga;
+  });
+  Object.keys(map).forEach(nama=>{
+    const item=map[nama];
+    list.innerHTML+=`
+    <div class="row">
+      ${nama} x${item.qty} - Rp ${formatRupiah(item.total)}
+      <button class="hapus" onclick="hapusSatu('${nama}')">x</button>
+    </div>`;
+  });
+  document.getElementById("jumlah").innerText=cart.length;
+  document.getElementById("total").innerText=formatRupiah(total);
+  adjustMenuPadding();
+}
+
+function hapusSatu(nama){
+  let i=cart.findIndex(x=>x.nama===nama);
+  if(i>-1){total-=cart[i].harga;cart.splice(i,1);render();}
+}
+
+function openKeypad(){
+  document.getElementById("keypadModal").classList.add("active");
+  document.getElementById("totalKeypad").innerText=formatRupiah(total);
+}
+function closeKeypad(){
+  document.getElementById("keypadModal").classList.remove("active");
+}
+
+function inputUang(n){bayar+=n;update();}
+function clearUang(){bayar="";update();}
+function hapusUang(){bayar=bayar.slice(0,-1);update();}
+
+function update(){
+  document.getElementById("bayar").innerText=formatRupiah(Number(bayar||0));
+  document.getElementById("kembali").innerText=formatRupiah(Number(bayar||0)-total);
+}
+
+function checkout(){
+  if(Number(bayar)<total) return alert("Uang kurang");
+  document.getElementById("loading").style.display="flex";
+
+  let map={};
+  cart.forEach(i=>{
+    if(!map[i.nama]) map[i.nama]={qty:0,total:0};
+    map[i.nama].qty++;
+    map[i.nama].total+=i.harga;
+  });
+
+  for(let n in map){
+    fetch(API_URL,{
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({nama:n,qty:map[n].qty,total:map[n].total})
+    });
+  }
+
+  setTimeout(()=>{
+    document.getElementById("loading").style.display="none";
+    document.getElementById("notif").style.display="block";
+    setTimeout(()=>document.getElementById("notif").style.display="none",2000);
+    cart=[];total=0;bayar="";
+    render();
+    closeKeypad();
+  },1000);
+}
+
+</script>
+
+</body>
+</html>
