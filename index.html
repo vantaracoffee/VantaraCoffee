@@ -216,6 +216,28 @@ body{
   border-radius:10px;
   display:none;
 }
+
+/* 🔥 TOUCH EFFECT (TAMBAHAN SAJA - AMAN) */
+button, .item{
+  transition: transform 0.08s ease, opacity 0.08s ease, filter 0.08s ease;
+}
+
+button:active, .item:active{
+  transform: scale(0.94);
+  opacity: 0.85;
+  filter: brightness(1.15);
+}
+
+.keypad button:active{
+  transform: scale(0.88);
+  background:#c8a96a;
+  color:#000;
+}
+
+.bayar-btn:active{
+  transform: scale(0.96);
+}
+
 </style>
 </head>
 
@@ -230,7 +252,6 @@ body{
 
   <div>Item: <span id="jumlah">0</span></div>
 
-  <!-- 🔥 TOTAL LUAR -->
   <div class="total-box">
     <div class="total-label">TOTAL BELANJA</div>
     <div class="total-value" id="totalWrapper">
@@ -241,7 +262,6 @@ body{
   <button class="bayar-btn" onclick="openKeypad()">Bayar</button>
 </div>
 
-<!-- KEYPAD -->
 <div id="keypadModal" class="keypad-modal">
 
   <div class="total-keypad-box">
@@ -284,7 +304,7 @@ body{
 <div id="notif" class="notif">✅ Transaksi berhasil</div>
 
 <script>
-
+/* 🔒 SCRIPT KAMU TIDAK DIUBAH */
 const API_URL="https://script.google.com/macros/s/AKfycbzTsSoFYe8c4XPHUL8vKVkh2sXtUAnD4RaIf__2r0Dxjp_eJFJqVd3RLTXjJ5GiR7g2/exec";
 
 let cart=[],total=0,bayar="";
@@ -439,7 +459,6 @@ function checkout(){
 
   },1000);
 }
-
 </script>
 
 </body>
