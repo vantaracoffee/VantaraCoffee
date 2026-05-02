@@ -57,7 +57,7 @@ body{
   padding:10px;
 }
 
-/* 🔥 TOTAL LUAR */
+/* TOTAL */
 .total-box{
   background:linear-gradient(135deg,#1a1a1c,#111);
   border-radius:14px;
@@ -135,7 +135,7 @@ body{
 }
 .keypad-modal.active{bottom:0;}
 
-/* 🔥 TOTAL KEYPAD */
+/* TOTAL KEYPAD */
 .total-keypad-box{
   background:#1a1a1c;
   border-radius:14px;
@@ -217,7 +217,7 @@ body{
   display:none;
 }
 
-/* 🔥 TOUCH EFFECT (TAMBAHAN SAJA - AMAN) */
+/* TOUCH EFFECT */
 button, .item{
   transition: transform 0.08s ease, opacity 0.08s ease, filter 0.08s ease;
 }
@@ -238,6 +238,35 @@ button:active, .item:active{
   transform: scale(0.96);
 }
 
+/* 🔥 SUCCESS SCREEN FIX */
+.success-screen{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:#0b0b0c;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:9999;
+}
+
+.success-screen h1{
+  font-size:34px;
+  color:#c8a96a;
+  margin-bottom:20px;
+}
+
+.success-screen button{
+  padding:14px 24px;
+  background:#c8a96a;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  font-size:16px;
+}
 </style>
 </head>
 
@@ -303,8 +332,13 @@ button:active, .item:active{
 
 <div id="notif" class="notif">✅ Transaksi berhasil</div>
 
+<!-- 🔥 SUCCESS -->
+<div id="successScreen" class="success-screen">
+  <h1>✅ Transaksi Berhasil</h1>
+  <button onclick="tutupSuccess()">Kembali</button>
+</div>
+
 <script>
-/* 🔒 SCRIPT KAMU TIDAK DIUBAH */
 const API_URL="https://script.google.com/macros/s/AKfycbzTsSoFYe8c4XPHUL8vKVkh2sXtUAnD4RaIf__2r0Dxjp_eJFJqVd3RLTXjJ5GiR7g2/exec";
 
 let cart=[],total=0,bayar="";
@@ -450,14 +484,19 @@ function checkout(){
 
   setTimeout(()=>{
     document.getElementById("loading").style.display="none";
-    document.getElementById("notif").style.display="block";
-    setTimeout(()=>document.getElementById("notif").style.display="none",2000);
+
+    // 🔥 tampilkan success
+    document.getElementById("successScreen").style.display="flex";
 
     cart=[];total=0;bayar="";
     render();
     closeKeypad();
 
   },1000);
+}
+
+function tutupSuccess(){
+  document.getElementById("successScreen").style.display="none";
 }
 </script>
 
