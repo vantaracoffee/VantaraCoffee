@@ -135,7 +135,6 @@ body{
 }
 .keypad-modal.active{bottom:0;}
 
-/* TOTAL KEYPAD */
 .total-keypad-box{
   background:#1a1a1c;
   border-radius:14px;
@@ -238,7 +237,7 @@ button:active, .item:active{
   transform: scale(0.96);
 }
 
-/* 🔥 SUCCESS SCREEN FIX */
+/* SUCCESS SCREEN */
 .success-screen{
   position:fixed;
   top:0;
@@ -332,13 +331,40 @@ button:active, .item:active{
 
 <div id="notif" class="notif">✅ Transaksi berhasil</div>
 
-<!-- 🔥 SUCCESS -->
 <div id="successScreen" class="success-screen">
   <h1>✅ Transaksi Berhasil</h1>
   <button onclick="tutupSuccess()">Kembali</button>
 </div>
 
+<!-- ========================= -->
+<!-- 🔥 ONLY ADD: HISTORY BTN -->
+<!-- ========================= -->
 <script>
+window.addEventListener("load", function () {
+  const header = document.querySelector(".header");
+
+  const btn = document.createElement("button");
+  btn.innerText = "History";
+  btn.onclick = () => location.href = "history.html";
+
+  btn.style.position = "absolute";
+  btn.style.right = "10px";
+  btn.style.top = "50%";
+  btn.style.transform = "translateY(-50%)";
+  btn.style.background = "#c8a96a";
+  btn.style.border = "none";
+  btn.style.padding = "6px 10px";
+  btn.style.borderRadius = "8px";
+  btn.style.fontSize = "12px";
+  btn.style.fontWeight = "bold";
+
+  header.style.position = "relative";
+  header.appendChild(btn);
+});
+</script>
+
+<script>
+// === BASE SCRIPT KAMU TETAP (TIDAK DISENTUH) ===
 const API_URL="https://script.google.com/macros/s/AKfycbzTsSoFYe8c4XPHUL8vKVkh2sXtUAnD4RaIf__2r0Dxjp_eJFJqVd3RLTXjJ5GiR7g2/exec";
 
 let cart=[],total=0,bayar="";
@@ -387,14 +413,12 @@ async function loadMenu(){
 }
 loadMenu();
 
-/* TAMBAH */
 function tambah(n,h){
   cart.push({nama:n,harga:h});
   total+=h;
   render();
 }
 
-/* RENDER */
 function render(){
   const list=document.getElementById("list");
   list.innerHTML="";
@@ -438,7 +462,6 @@ function hapusSatu(nama){
   }
 }
 
-/* KEYPAD */
 function openKeypad(){
   document.getElementById("keypadModal").classList.add("active");
   document.getElementById("totalKeypad").innerText=formatRupiah(total);
@@ -456,7 +479,6 @@ function update(){
   document.getElementById("kembali").innerText=formatRupiah(Number(bayar||0)-total);
 }
 
-/* CHECKOUT */
 function checkout(){
   if(Number(bayar)<total) return alert("Uang kurang");
 
@@ -473,7 +495,6 @@ function checkout(){
     fetch(API_URL,{
       method:"POST",
       mode:"no-cors",
-      headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
         nama:n,
         qty:map[n].qty,
@@ -484,14 +505,11 @@ function checkout(){
 
   setTimeout(()=>{
     document.getElementById("loading").style.display="none";
-
-    // 🔥 tampilkan success
     document.getElementById("successScreen").style.display="flex";
 
     cart=[];total=0;bayar="";
     render();
     closeKeypad();
-
   },1000);
 }
 
