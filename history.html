@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>History POS Hari Ini</title>
+
+<style>
+body{
+  font-family: sans-serif;
+  background:#0b0b0c;
+  color:#fff;
+  padding:20px;
+}
+
+h2{
+  margin-bottom:5px;
+}
+
+.info{
+  color:#aaa;
+  font-size:14px;
+  margin-bottom:15px;
+}
+
+button{
+  padding:10px 15px;
+  border:none;
+  background:#00c853;
+  color:#fff;
+  border-radius:6px;
+  cursor:pointer;
+  margin-bottom:15px;
+  margin-right:8px;
+}
+
+.card{
+  background:#111;
+  padding:10px;
+  border-radius:8px;
+  margin-bottom:10px;
+  border-left:4px solid #00c853;
+}
+
+.item{
+  font-size:16px;
+  font-weight:bold;
+}
+
+.meta{
+  font-size:13px;
+  color:#aaa;
+  margin-top:3px;
+}
+
+.empty{
+  color:#ff5252;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📜 HISTORY TRANSAKSI</h2>
+<div class="info" id="dateInfo">Loading date...</div>
+
+<!-- TAMBAHAN: tombol kembali -->
+<button onclick="window.location.href='index.html'">⬅ Kembali</button>
+
+<button onclick="loadData()">🔄 Reload</button>
+
+<div id="status">Loading...</div>
+<div id="list"></div>
+
+<script>
+
+const API_URL = "https://script.google.com/macros/s/AKfycbxTHgpzdOojlkYVCFz4E4zjngK0OUMJWWR8G7817NpRsrXuOO2UlPS3k1Mea8YZNRgJ/exec?mode=history";
+
+async function loadData(){
+
+  const list = document.getElementById("list");
+  const status = document.getElementById("status");
+  const dateInfo = document.getElementById("dateInfo");
+
+  list.innerHTML = "";
+  status.innerText = "Loading...";
+
+  try{
+    const res = await fetch(API_URL);
+    const json = await res.json();
+
+    if(json.status !== "success"){
+      status.innerHTML = "❌ Error: " + json.message;
+      return;
+    }
+
+    dateInfo.innerText = "📅 Hari ini: " + json.date;
+
+    const data = json.data;
+
+    if(data.length === 0){
+      status.innerHTML = "<div class='empty'>Tidak ada transaksi hari ini</div>";
+      return;
+    }
+
+    let totalQty = data.reduce((sum, d) => sum + Number(d.qty || 0), 0);
+
+    status.innerHTML = "✔ Total transaksi: " + data.length + " | Total qty: " + totalQty;
+
+    data.forEach(d => {
+
+      const div = document.createElement("div");
+      div.className = "card";
+
+      div.innerHTML = `
+        <div class="item">${d.item}</div>
+        <div class="meta">🕒 ${d.jam} | 📦 Qty: ${d.qty}</div>
+      `;
+
+      list.appendChild(div);
+    });
+
+  }catch(err){
+    status.innerHTML = "❌ Gagal load: " + err;
+  }
+}
+
+loadData();
+
+</script>
+
+</body>
+</html>
